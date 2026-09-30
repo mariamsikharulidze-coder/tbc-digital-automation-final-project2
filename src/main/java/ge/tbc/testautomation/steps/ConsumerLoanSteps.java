@@ -3,6 +3,7 @@ package ge.tbc.testautomation.steps;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import ge.tbc.testautomation.components.NavigationComponent;
+import ge.tbc.testautomation.constants.Constants;
 import ge.tbc.testautomation.pages.ConsumerLoanPage;
 
 import java.util.regex.Pattern;
@@ -20,7 +21,7 @@ public class ConsumerLoanSteps {
     }
 
     public ConsumerLoanSteps openHomePage() {
-        page.navigate("https://tbcbank.ge/en");
+        page.navigate(Constants.HOME_URL);
         return this;
     }
 
@@ -77,11 +78,11 @@ public class ConsumerLoanSteps {
 
         PlaywrightAssertions.assertThat(
                 consumerLoanPage.interestRate
-        ).hasText(ConsumerLoanConstants.EXPECTED_INTEREST_RATE);
+        ).hasText(Constants.EXPECTED_INTEREST_RATE);
 
         PlaywrightAssertions.assertThat(
                 consumerLoanPage.effectiveInterestRate
-        ).hasText(ConsumerLoanConstants.EXPECTED_EFFECTIVE_INTEREST_RATE);
+        ).hasText(Constants.EXPECTED_EFFECTIVE_INTEREST_RATE);
 
         return this;
     }
@@ -94,7 +95,7 @@ public class ConsumerLoanSteps {
         newPage.waitForLoadState();
 
         PlaywrightAssertions.assertThat(newPage)
-                .hasURL(Pattern.compile("^https://tbccredit\\.ge/.*"));
+                .hasURL(Pattern.compile(Constants.TBC_CREDIT_URL_REGEX));
 
         return this;
     }

@@ -14,7 +14,7 @@ public class HomePage {
     }
 
     public void open() {
-        page.navigate(UrlConstants.HOME_URL);
+//     page.navigate(UrlConstants.HOME_URL);
     }
 
     public NavigationComponent navigation() {

@@ -6,7 +6,7 @@ This project is an automated testing framework for the TBC Bank digital website.
 
 The framework combines UI, API, database-driven, localization, API-to-UI, and browser network validation scenarios.
 
-The project uses:
+### Technologies
 
 - Java 21
 - Playwright
@@ -28,16 +28,16 @@ src/
 ├── main/
 │   ├── java/
 │   │   └── ge/tbc/testautomation/
-│   │       ├── pages/
-│   │       ├── components/
-│   │       ├── steps/
 │   │       ├── api/
 │   │       │   └── models/
+│   │       ├── components/
+│   │       ├── constants/
 │   │       ├── database/
 │   │       │   ├── mappers/
 │   │       │   └── models/
-│   │       ├── constants/
-│   │       └── utils/
+│   │       ├── pages/
+│   │       └── steps/
+│   │
 │   └── resources/
 │       ├── mybatis/
 │       └── database.sql
@@ -49,9 +49,15 @@ src/
             ├── api/
             ├── data/
             └── ui/
+                ├── ConsumerLoanTest
+                ├── InstallmentTest
+                ├── LocalizationTest
+                ├── MoneyTransferFeeTest
+                ├── MoneyTransferNetworkTest
+                └── PosTerminalTest
 
 pom.xml
-testng.xml
+testing.xml
 README.md
 ```
 
@@ -59,42 +65,39 @@ README.md
 
 # 1. Framework Architecture
 
-The framework separates element definitions, reusable page components, business actions, API models, database access, test data, and test scenarios.
+The framework follows a Page Object and Steps-based architecture that separates locators, reusable components, business actions, test data, and test scenarios.
 
-### pages/
+### Pages
 
-The `pages` package contains Page Object classes.
+The `pages` package contains Page Object classes responsible for page-specific UI elements.
 
-Each Page Object stores locators that belong to a specific TBC Bank page or feature.
-
-Examples include:
+Main Page Objects include:
 
 - `ConsumerLoanPage`
 - `MoneyTransfersPage`
 - `InstallmentPage`
 - `PosTerminalPage`
+- `HomePage`
 
-Page Objects do not contain complete test scenarios. Their main responsibility is to represent page-specific UI elements.
+Page Objects contain locators used by the corresponding Steps classes.
 
-### components/
+XPath locators are used for UI element identification.
 
-The `components` package contains reusable UI elements that are shared between different pages.
+### Components
 
-For example, `NavigationComponent` represents common header navigation.
+The `components` package contains reusable UI elements shared between different scenarios.
 
-It contains reusable elements such as:
+`NavigationComponent` represents common website navigation and is reused by multiple flows.
+
+It contains navigation elements such as:
 
 - Personal
 - For Business
 - localized navigation buttons
 
-Page Components are separated from Page Objects because the header is not specific to one page.
+This prevents duplication of shared navigation locators across Page Objects.
 
-For example, the same `NavigationComponent.personalButton` is reused by Consumer Loan, Money Transfer, and Installment scenarios instead of defining the Personal navigation button separately in every Page Object.
-
-This reduces duplicated locators and makes maintenance easier if the common navigation changes.
-
-### steps/
+### Steps
 
 The `steps` package contains reusable business actions built on top of Page Objects and Components.
 
@@ -103,60 +106,36 @@ Examples include:
 - opening the Personal menu
 - navigating to Consumer Loan
 - entering calculator data
-- selecting a money transfer currency
+- selecting money transfer currency and country
+- opening Installment Terms
 - opening POS Terminal forms
-- validating resulting UI content
+- validating UI results
 
-This keeps test methods focused on the business scenario rather than low-level Playwright operations.
+This keeps TestNG test methods focused on business scenarios instead of low-level Playwright interactions.
 
-### api/
+### Constants
 
-The `api` package contains Java models used to deserialize API responses.
+Reusable test values are stored in `Constants.java`.
 
-For the Consumer Loan API, nested response objects are represented by POJOs such as:
+These include:
 
-- `ConsumerLoanResponse`
-- `SectionComponent`
-- `TabsInputs`
-- `CalculatorTab`
-- `CalculatorComponent`
-- `CalculatorInputs`
-- `CurrencyConfiguration`
+- URLs
+- API endpoints
+- HTTP methods and status codes
+- UI text
+- calculator values
+- money transfer data
+- installment values
+- POS Terminal values
+- navigation values
 
-`MoneyTransferFee` is used for Money Transfer API response deserialization.
-
-### database/
-
-The `database` package contains the SQL/MyBatis integration.
-
-It includes:
-
-- database configuration
-- MyBatis mapper
-- Java database model
-
-`LoanDataMapper` retrieves calculator test data and maps database rows to `LoanData` objects.
-
-### tests/
-
-The test packages contain the actual TestNG scenarios.
-
-They include:
-
-- Playwright UI tests
-- localization tests
-- Rest Assured API tests
-- SQL/DataProvider-driven tests
-- API-to-UI validation
-- Playwright network validation
-
-Assertions and scenario orchestration are kept at the test/step level instead of being mixed into Page Object locator definitions.
+This reduces duplicated hardcoded values throughout the project.
 
 ---
 
 # 2. Localization Strategy
 
-The project validates both English and Georgian versions of the TBC Bank website without duplicating the test implementation.
+The project validates both English and Georgian versions of the TBC Bank website.
 
 Localization data is stored in a TestNG DataProvider.
 
@@ -176,33 +155,33 @@ https://tbcbank.ge/ka
 თიბისი
 ```
 
-The same localization test is executed for both data sets.
+The same `LocalizationTest` is executed for both data sets.
 
-`NavigationComponent.getNavigationButton()` receives the expected localized navigation text dynamically. Therefore, separate English and Georgian test methods are not required.
+`NavigationComponent.getNavigationButton()` receives the expected localized navigation text dynamically.
 
 The flow is:
 
 ```text
 LocalizationDataProvider
         ↓
-locale-specific URL and expected labels
+Locale-specific URL and labels
         ↓
-same TestNG test
+LocalizationTest
         ↓
 NavigationComponent
         ↓
-Playwright UI validation
+Playwright validation
 ```
 
-To add another locale, a new row can be added to the localization DataProvider with the locale URL and expected navigation labels. The test logic itself does not need to be duplicated.
+This avoids creating separate test methods for each language.
 
 ---
 
 # 3. SQL and Test Data Strategy
 
-A local H2 database and MyBatis are used to separate Consumer Loan calculator input data from the automated test implementation.
+A local H2 database and MyBatis are used to provide Consumer Loan calculator test data.
 
-The database contains multiple loan variations, for example:
+The database contains multiple loan variations:
 
 ```text
 Amount = 3000   Period = 48
@@ -211,7 +190,7 @@ Amount = 10000  Period = 24
 Amount = 15000  Period = 12
 ```
 
-The complete data flow is:
+The data flow is:
 
 ```text
 H2 Database
@@ -222,45 +201,36 @@ MyBatis
      ↓
 LoanDataMapper
      ↓
-LoanData Java Model
+LoanData
      ↓
 LoanDataProvider
      ↓
 TestNG DataProvider
      ↓
-Playwright Consumer Loan Test
+ConsumerLoanTest
 ```
 
 `DatabaseConfig` initializes the H2 database and executes `database.sql`.
 
 `LoanDataMapper` retrieves the rows from the `loan_data` table.
 
-Each row is mapped to a `LoanData` Java object containing the loan amount and period.
+Each database row is mapped to a `LoanData` Java object.
 
-`LoanDataProvider` supplies these objects to the same TestNG test method.
+`LoanDataProvider` supplies these objects to the TestNG test.
 
-This means the Consumer Loan calculator scenario runs multiple times without creating separate test methods.
-
-A new test-data variation can be introduced by adding another record to `database.sql`.
-
-For example:
-
-```sql
-INSERT INTO loan_data (id, amount, period)
-VALUES (5, 20000, 18);
-```
-
-No change to the Playwright test implementation is required.
+This allows the same Consumer Loan calculator test to execute with multiple data sets without duplicating test methods.
 
 ---
 
 # 4. API Testing Strategy
 
-Rest Assured is used to validate public TBC Bank API functionality.
+Rest Assured is used for API validation.
 
 The Money Transfer Fees endpoint is tested with both positive and negative scenarios.
 
-The happy-path scenario sends:
+### Positive scenario
+
+The request contains:
 
 ```text
 amount=200
@@ -270,23 +240,25 @@ receiveCountryCode=GEO
 
 The response is deserialized into `MoneyTransferFee` POJOs.
 
-The test validates meaningful business values for money transfer systems and their corresponding fees.
+The test validates the returned money transfer systems and their corresponding fees.
 
-The negative scenario sends a request without the required `currencyCode`.
+### Negative scenario
 
-The test verifies:
+The request is sent without the required `currencyCode`.
+
+The test validates:
 
 - HTTP 400 status
 - validation error title
 - `currencyCode` validation message
 
-This ensures that the API tests validate both successful behavior and server-side validation rather than checking only HTTP 200 responses.
+This provides both successful and negative API validation.
 
 ---
 
-# 5. API → UI Consistency Strategy
+# 5. API-to-UI Validation
 
-The Consumer Loan page was selected for API-to-UI consistency validation.
+The Consumer Loan functionality is used for API-to-UI consistency validation.
 
 The test calls:
 
@@ -294,25 +266,19 @@ The test calls:
 /api/v1/sites/pages/VL9d8DnAnqAGWv84sUJvZ?locale=en-US
 ```
 
-using Rest Assured.
+The response is deserialized into Consumer Loan POJOs.
 
-The response is deserialized into nested Consumer Loan POJOs.
-
-The test extracts two meaningful calculator values from the API:
+The test extracts:
 
 ```text
 yearlyPercent
 effectivePercent
 ```
 
-These values are used as the source of truth.
-
-After retrieving them, Playwright opens the corresponding Consumer Loan page and verifies the values displayed by the UI for:
+Playwright then opens the Consumer Loan page and validates the corresponding UI values:
 
 - Interest rate
 - Effective interest rate
-
-The expected UI values are built from the API response rather than hardcoded separately in the UI test.
 
 The flow is:
 
@@ -323,12 +289,12 @@ POJO deserialization
         ↓
 yearlyPercent + effectivePercent
         ↓
-Playwright Consumer Loan page
+Consumer Loan UI
         ↓
-UI interest-rate validation
+Playwright validation
 ```
 
-This test can detect inconsistencies where the backend/content API provides one interest rate while the website displays a different value.
+The expected UI values are obtained from the API response rather than duplicated as separate hardcoded test expectations.
 
 ---
 
@@ -344,110 +310,82 @@ Currency: EUR
 Country: Georgia
 ```
 
-Selecting the receiving country triggers the browser request:
+Selecting the receiving country triggers:
 
 ```text
 GET /api/v1/moneyTransfer/fees
 ```
 
-Playwright captures the actual browser response using `page.waitForResponse()`.
+Playwright captures the browser response using:
+
+```java
+page.waitForResponse(...)
+```
 
 The test validates:
 
-- expected endpoint
-- HTTP method is GET
-- response status is 200
+- expected API endpoint
+- GET request method
+- HTTP 200 response
 - `amount=200`
 - `currencyCode=EUR`
 - `receiveCountryCode=GEO`
 
-After validating the network request and response, the test verifies that a commission result card is displayed on the UI.
+After validating the network request, the test also verifies that a commission result is displayed in the UI.
 
 The flow is:
 
 ```text
 UI interaction
       ↓
-Select Georgia
+Select country
       ↓
 page.waitForResponse()
       ↓
-Validate endpoint
+Validate endpoint and method
       ↓
-Validate GET
-      ↓
-Validate HTTP 200
+Validate HTTP status
       ↓
 Validate request parameters
       ↓
-Verify commission result on UI
+Verify UI result
 ```
-
-The network event itself is used for synchronization. The scenario does not use `Thread.sleep()` or arbitrary timeout-based waiting.
 
 ---
 
 # 7. Test Stability
 
-The Money Transfer Network Validation scenario is one of the more advanced scenarios because it combines dynamic UI interaction with browser network monitoring.
+The framework uses Playwright synchronization mechanisms instead of fixed delays.
 
-Several possible sources of instability were considered.
-
-### 1. Dynamic dropdown interaction
-
-The currency selector is implemented as a custom UI dropdown.
-
-The EUR option required targeting the actual dropdown item rather than relying on a broad text locator.
-
-The implementation uses a locator scoped to the dropdown option title:
-
-```java
-locator(".tbcx-dropdown-popover-item__title")
-```
-
-This reduces the risk of interacting with another EUR text displayed elsewhere on the page.
-
-### 2. Network timing
-
-The money-transfer request is asynchronous and is triggered by a UI action.
-
-Using a fixed delay could make the test unreliable on slower or faster environments.
-
-Instead, the implementation uses:
-
-```java
-page.waitForResponse(...)
-```
-
-The response listener is registered around the UI action that triggers the request. The test therefore continues when the relevant network event occurs rather than after an arbitrary amount of time.
-
-### 3. Dynamic UI rendering
-
-The commission results are rendered after the calculator receives the response.
-
-The test uses Playwright assertions such as `isVisible()` instead of fixed sleeps.
-
-Playwright assertions automatically wait for the expected UI state within the configured timeout.
-
-### 4. Shared browser state
+### Browser isolation
 
 Each UI test receives a new `BrowserContext` and `Page`.
 
 The context is closed after each test.
 
-This prevents cookies, navigation state, or selections from one scenario from affecting another scenario.
+This prevents browser state, cookies, and selections from one test affecting another test.
 
-The framework therefore reduces instability through event-based synchronization, isolated browser contexts, scoped locators, and Playwright auto-waiting rather than unnecessary retries or arbitrary waits.
+### Playwright assertions
+
+Playwright assertions automatically wait for the expected UI state.
+
+### Network synchronization
+
+Browser network validation uses:
+
+```java
+page.waitForResponse(...)
+```
+
+The listener is registered around the UI action that triggers the request.
+
+No `Thread.sleep()` is used for synchronization.
 
 ---
 
 # 8. Zephyr Scale and Automation Traceability
 
 Test scenarios are documented in Zephyr Scale.
-
-The documented scope includes UI, localization, database-driven, API, API-to-UI, and network-validation scenarios.
-
-Examples include:
 
 | Zephyr ID | Scenario |
 |---|---|
@@ -461,7 +399,7 @@ Examples include:
 | SCRUM-T57 | Consumer Loan Calculator with Database Test Data |
 | SCRUM-T58 | Money Transfer Fee Network Request |
 
-Automated tests use TestNG descriptions to provide traceability back to the corresponding Zephyr scenario.
+Automated tests use TestNG descriptions to provide traceability to the corresponding Zephyr scenarios.
 
 Example:
 
@@ -471,13 +409,11 @@ Example:
 )
 ```
 
-This provides a direct connection between documented manual scenarios and their automated implementations.
-
 ---
 
 # 9. Parallel Execution
 
-TestNG suite configuration is stored in `testng.xml`.
+The TestNG suite configuration is stored in `testing.xml`.
 
 The suite uses class-level parallel execution:
 
@@ -487,34 +423,38 @@ The suite uses class-level parallel execution:
        thread-count="3">
 ```
 
-Class-level parallelism was selected because it allows independent test classes to execute concurrently while avoiding unnecessary sharing of individual UI test state between parallel test methods.
+Class-level parallelism allows independent test classes to execute concurrently.
 
-The UI framework creates isolated browser contexts for tests, further reducing state interference.
+Each UI test uses an isolated browser context to reduce state interference between tests.
 
-The complete TestNG suite has been executed successfully with:
+---
+
+# 10. Test Execution Result
+
+The current automated suite executes successfully:
 
 ```text
-Total tests run: 15
-Passes: 15
+Total tests run: 12
+Passes: 12
 Failures: 0
 Skips: 0
 ```
 
 ---
 
-# 10. Running the Tests
+# 11. Running the Tests
 
-## Run with IntelliJ IDEA
+## IntelliJ IDEA
 
-Open `testng.xml` and run the TestNG suite.
+Open `testing.xml` and run the TestNG suite.
 
-## Run with Maven
+## Maven
 
 ```bash
 mvn clean test
 ```
 
-The project requires Java 21 and Maven dependencies defined in `pom.xml`.
+The project requires Java 21 and the Maven dependencies defined in `pom.xml`.
 
 ---
 
@@ -522,17 +462,20 @@ The project requires Java 21 and Maven dependencies defined in `pom.xml`.
 
 The project includes:
 
-- Playwright UI scenarios
-- reusable Page Objects
-- reusable Page Components
+- Playwright UI automation
+- Page Object Model
+- reusable navigation component
+- Steps layer
+- XPath locators
 - Georgian and English localization validation
+- TestNG DataProviders
 - SQL/H2 test data
-- MyBatis mapping
-- TestNG DataProvider execution
-- Rest Assured happy-path API validation
+- MyBatis database mapping
+- Rest Assured positive API validation
 - Rest Assured negative API validation
 - POJO response deserialization
 - API-to-UI consistency validation
 - Playwright browser network validation
-- Zephyr Scale automation traceability
+- isolated browser contexts
 - parallel TestNG execution
+- Zephyr Scale automation traceability

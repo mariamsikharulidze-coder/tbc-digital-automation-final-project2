@@ -3,13 +3,14 @@ package ge.tbc.testautomation.steps;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import ge.tbc.testautomation.components.NavigationComponent;
+import ge.tbc.testautomation.constants.Constants;
 import ge.tbc.testautomation.pages.InstallmentPage;
 
 public class InstallmentSteps {
 
-    Page page;
-    InstallmentPage installmentPage;
-    NavigationComponent navigationComponent;
+    private final Page page;
+    private final InstallmentPage installmentPage;
+    private final NavigationComponent navigationComponent;
 
     public InstallmentSteps(Page page) {
         this.page = page;
@@ -18,7 +19,7 @@ public class InstallmentSteps {
     }
 
     public InstallmentSteps openHomePage() {
-        page.navigate("https://tbcbank.ge/en");
+        page.navigate(Constants.HOME_URL);
         return this;
     }
 

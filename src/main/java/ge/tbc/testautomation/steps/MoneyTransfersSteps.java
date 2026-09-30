@@ -4,22 +4,23 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Response;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import ge.tbc.testautomation.components.NavigationComponent;
+import ge.tbc.testautomation.constants.Constants;
 import ge.tbc.testautomation.pages.MoneyTransfersPage;
 
 public class MoneyTransfersSteps {
 
-    Page page;
-    MoneyTransfersPage moneyTransfersPage;
-    NavigationComponent navigationComponent;
+    private final Page page;
+    private final MoneyTransfersPage moneyTransfersPage;
+    private final NavigationComponent navigationComponent;
 
     public MoneyTransfersSteps(Page page) {
         this.page = page;
-        this.moneyTransfersPage = new MoneyTransfersPage(page);
-        this.navigationComponent = new NavigationComponent(page);
+        moneyTransfersPage = new MoneyTransfersPage(page);
+        navigationComponent = new NavigationComponent(page);
     }
 
     public MoneyTransfersSteps openHomePage() {
-        page.navigate("https://tbcbank.ge/en");
+        page.navigate(Constants.HOME_URL);
         return this;
     }
 
@@ -45,11 +46,7 @@ public class MoneyTransfersSteps {
 
     public MoneyTransfersSteps selectCurrency() {
         moneyTransfersPage.currencyDropdown.click();
-
-        moneyTransfersPage.eurOption.evaluate(
-                "element => element.click()"
-        );
-
+        moneyTransfersPage.eurOption.evaluate("element => element.click()");
         return this;
     }
 
@@ -59,18 +56,12 @@ public class MoneyTransfersSteps {
         return this;
     }
 
-
     public Response selectCountryAndCaptureNetworkResponse() {
-
         moneyTransfersPage.countryDropdown.click();
 
         return page.waitForResponse(
-                response ->
-                        response.url()
-                                .contains("/api/v1/moneyTransfer/fees")
-                                && response.request()
-                                .method()
-                                .equals("GET"),
+                response -> response.url().contains(Constants.MONEY_TRANSFER_FEES_ENDPOINT)
+                        && response.request().method().equals(Constants.GET_METHOD),
                 () -> moneyTransfersPage.georgiaOption.click()
         );
     }
@@ -79,7 +70,6 @@ public class MoneyTransfersSteps {
         PlaywrightAssertions.assertThat(
                 moneyTransfersPage.commissionCards.first()
         ).isVisible();
-
         return this;
     }
 }
