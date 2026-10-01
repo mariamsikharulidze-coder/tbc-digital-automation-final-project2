@@ -1,14 +1,9 @@
 package ge.tbc.testautomation.api.models;
 
+import lombok.Data;
+
+@Data
 public class CalculatorTab {
 
     private CalculatorComponent component;
-
-    public CalculatorComponent getComponent() {
-        return component;
-    }
-
-    public void setComponent(CalculatorComponent component) {
-        this.component = component;
-    }
 }

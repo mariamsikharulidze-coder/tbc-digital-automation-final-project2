@@ -1,51 +1,48 @@
 package ge.tbc.testautomation.tests.api;
 
+import ge.tbc.testautomation.api.clients.ConsumerLoanApiClient;
 import ge.tbc.testautomation.api.models.ConsumerLoanResponse;
 import ge.tbc.testautomation.api.models.CurrencyConfiguration;
-import ge.tbc.testautomation.api.models.SectionComponent;
+import ge.tbc.testautomation.constants.Constants;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static io.restassured.RestAssured.given;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 public class ConsumerLoanApiTest {
+
+    private ConsumerLoanApiClient consumerLoanApiClient;
+
+    @BeforeMethod
+    public void initializeClient() {
+        consumerLoanApiClient = new ConsumerLoanApiClient();
+    }
 
     @Test
     public void checkConsumerLoanApiResponse() {
 
-        ConsumerLoanResponse response = given()
-                .baseUri("https://apigw.tbcbank.ge")
-                .queryParam("locale", "en-US")
-                .when()
-                .get("/api/v1/sites/pages/VL9d8DnAnqAGWv84sUJvZ")
-                .then()
-                .statusCode(200)
-                .extract()
-                .as(ConsumerLoanResponse.class);
-
-        assertNotNull(response);
-        assertNotNull(response.getSectionComponents());
-
-        SectionComponent calculatorSection =
-                response.getSectionComponents()
-                        .stream()
-                        .filter(section ->
-                                "tabsSection".equals(section.getType()))
-                        .findFirst()
-                        .orElseThrow();
+        ConsumerLoanResponse response =
+                consumerLoanApiClient.getConsumerLoanResponse();
 
         CurrencyConfiguration currencyConfiguration =
-                calculatorSection
-                        .getInputs()
-                        .getTabs()
-                        .get(0)
-                        .getComponent()
-                        .getInputs()
-                        .getCurrencyConfiguration()
-                        .get(0);
+                consumerLoanApiClient.getCurrencyConfiguration();
 
-        assertEquals(currencyConfiguration.getYearlyPercent(), 9.9);
-        assertEquals(currencyConfiguration.getEffectivePercent(), 18);
+        assertThat(response, notNullValue());
+
+        assertThat(
+                response.getSectionComponents(),
+                is(not(empty()))
+        );
+
+        assertThat(
+                currencyConfiguration.getYearlyPercent(),
+                equalTo(9.9)
+        );
+
+        assertThat(
+                currencyConfiguration.getEffectivePercent(),
+                equalTo(18)
+        );
     }
 }

@@ -6,14 +6,16 @@
        thread-count="3">
 
     <test name="Automation Tests">
-
         <classes>
-            <class name="ge.tbc.testautomation.tests.ui.Tests"/>
+            <class name="ge.tbc.testautomation.tests.ui.ConsumerLoanTest"/>
+            <class name="ge.tbc.testautomation.tests.ui.InstallmentTest"/>
             <class name="ge.tbc.testautomation.tests.ui.LocalizationTest"/>
+            <class name="ge.tbc.testautomation.tests.ui.MoneyTransferFeeTest"/>
+            <class name="ge.tbc.testautomation.tests.ui.MoneyTransferNetworkTest"/>
+            <class name="ge.tbc.testautomation.tests.ui.PosTerminalTest"/>
             <class name="ge.tbc.testautomation.tests.api.MoneyTransferApiTest"/>
             <class name="ge.tbc.testautomation.tests.api.ConsumerLoanApiTest"/>
         </classes>
-
     </test>
 
 </suite>

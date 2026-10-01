@@ -1,14 +1,9 @@
 package ge.tbc.testautomation.api.models;
 
+import lombok.Data;
+
+@Data
 public class CalculatorComponent {
 
     private CalculatorInputs inputs;
-
-    public CalculatorInputs getInputs() {
-        return inputs;
-    }
-
-    public void setInputs(CalculatorInputs inputs) {
-        this.inputs = inputs;
-    }
 }

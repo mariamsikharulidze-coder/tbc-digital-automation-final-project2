@@ -1,17 +1,11 @@
 package ge.tbc.testautomation.api.models;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class CalculatorInputs {
 
     private List<CurrencyConfiguration> currencyConfiguration;
-
-    public List<CurrencyConfiguration> getCurrencyConfiguration() {
-        return currencyConfiguration;
-    }
-
-    public void setCurrencyConfiguration(
-            List<CurrencyConfiguration> currencyConfiguration) {
-        this.currencyConfiguration = currencyConfiguration;
-    }
 }

@@ -1,8 +1,7 @@
 package ge.tbc.testautomation.tests.ui;
 
-import ge.tbc.testautomation.api.models.ConsumerLoanResponse;
+import ge.tbc.testautomation.api.clients.ConsumerLoanApiClient;
 import ge.tbc.testautomation.api.models.CurrencyConfiguration;
-import ge.tbc.testautomation.api.models.SectionComponent;
 import ge.tbc.testautomation.constants.Constants;
 import ge.tbc.testautomation.database.models.LoanData;
 import ge.tbc.testautomation.steps.ConsumerLoanSteps;
@@ -11,15 +10,15 @@ import ge.tbc.testautomation.tests.data.LoanDataProvider;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static io.restassured.RestAssured.given;
-
 public class ConsumerLoanTest extends BaseTest {
 
     private ConsumerLoanSteps consumerLoanSteps;
+    private ConsumerLoanApiClient consumerLoanApiClient;
 
     @BeforeMethod
-    public void initializeSteps() {
+    public void initialize() {
         consumerLoanSteps = new ConsumerLoanSteps(page);
+        consumerLoanApiClient = new ConsumerLoanApiClient();
     }
 
     @Test(
@@ -50,42 +49,8 @@ public class ConsumerLoanTest extends BaseTest {
     )
     public void verifyConsumerLoanPageContentAgainstApiResponse() {
 
-        ConsumerLoanResponse response = given()
-                .baseUri(Constants.API_BASE_URL)
-                .queryParam("locale", Constants.EN_US_LOCALE)
-                .when()
-                .get(Constants.CONSUMER_LOAN_PAGE_ENDPOINT)
-                .then()
-                .statusCode(Constants.OK_STATUS_CODE)
-                .extract()
-                .as(ConsumerLoanResponse.class);
-
-        SectionComponent calculatorSection =
-                response.getSectionComponents()
-                        .stream()
-                        .filter(section ->
-                                Constants.TABS_SECTION.equals(
-                                        section.getType()
-                                )
-                        )
-                        .findFirst()
-                        .orElseThrow();
-
         CurrencyConfiguration currencyConfiguration =
-                calculatorSection
-                        .getInputs()
-                        .getTabs()
-                        .get(0)
-                        .getComponent()
-                        .getInputs()
-                        .getCurrencyConfiguration()
-                        .get(0);
-
-        double yearlyPercent =
-                currencyConfiguration.getYearlyPercent();
-
-        int effectivePercent =
-                currencyConfiguration.getEffectivePercent();
+                consumerLoanApiClient.getCurrencyConfiguration();
 
         consumerLoanSteps
                 .openHomePage()
@@ -93,8 +58,12 @@ public class ConsumerLoanTest extends BaseTest {
                 .openConsumerLoan()
                 .openTermsPage()
                 .verifyInterestRatesFromApi(
-                        String.valueOf(yearlyPercent),
-                        String.valueOf(effectivePercent)
+                        String.valueOf(
+                                currencyConfiguration.getYearlyPercent()
+                        ),
+                        String.valueOf(
+                                currencyConfiguration.getEffectivePercent()
+                        )
                 );
     }
 
